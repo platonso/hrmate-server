@@ -32,9 +32,25 @@ fun Route.signUp(
                 request.email.isBlank() ||
                 request.position.isBlank() ||
                 request.password.isBlank()
-        val isPwTooShort = request.password.length < 4
-        if (areFieldsBlank || isPwTooShort) {
-            call.respond(HttpStatusCode.Conflict, "The password must be at least 4 characters long")
+        if (areFieldsBlank) {
+            call.respond(HttpStatusCode.Conflict, "Не все поля заполнены")
+            return@post
+        }
+
+        val isPwTooShort = request.password.length < 6
+        if (isPwTooShort) {
+            call.respond(HttpStatusCode.Conflict, "Пароль должен содержать минимум 6 символов")
+            return@post
+        }
+
+        if (!request.email.isValidEmail()) {
+            call.respond(HttpStatusCode.Conflict, "Неверный формат почты")
+            return@post
+        }
+
+        val existingUser = userDataSource.getUserByEmail(request.email)
+        if (existingUser != null) {
+            call.respond(HttpStatusCode.Conflict, "Пользователь с таким email уже существует")
             return@post
         }
 
@@ -50,10 +66,14 @@ fun Route.signUp(
             call.respond(HttpStatusCode.Conflict)
             return@post
         }
-
         call.respond(HttpStatusCode.OK)
     }
 }
+
+fun String.isValidEmail(): Boolean {
+    return this.matches(Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$"))
+}
+
 
 fun Route.signIn(
     userDataSource: UserDataSource,
@@ -68,13 +88,13 @@ fun Route.signIn(
 
         val user = userDataSource.getUserByEmail(request.email)
         if (user == null) {
-            call.respond(HttpStatusCode.Conflict, "User not found")
+            call.respond(HttpStatusCode.Conflict, "Пользователь не зарегистрирован")
             return@post
         }
 
         val isValidPassword = request.password == user.password
         if (!isValidPassword) {
-            call.respond(HttpStatusCode.Conflict, "Incorrect password")
+            call.respond(HttpStatusCode.Conflict, "Неверный пароль")
         }
 
         val token = tokenService.generate(
@@ -107,7 +127,7 @@ fun Route.getSecretInfo() {
         get("secret") {
             val principal = call.principal<JWTPrincipal>()
             val userId = principal?.getClaim("userId", String::class)
-            call.respond(HttpStatusCode.OK, "Your userId is $userId")
+            call.respond(HttpStatusCode.OK, "Ваш userId: $userId")
         }
     }
 }
