@@ -3,20 +3,19 @@ package com.platonso
 import com.platonso.data.requests.SignInRequest
 import com.platonso.data.requests.SignUpRequest
 import com.platonso.data.responses.AuthResponse
+import com.platonso.data.responses.UserInfoResponse
 import com.platonso.data.user.User
 import com.platonso.data.user.UserDataSource
 import com.platonso.security.token.TokenClaim
 import com.platonso.security.token.TokenConfig
 import com.platonso.security.token.TokenService
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
-import io.ktor.server.request.receiveNullable
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
+import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import org.bson.types.ObjectId
 
 fun Route.signUp(
     userDataSource: UserDataSource
@@ -128,6 +127,36 @@ fun Route.getSecretInfo() {
             val principal = call.principal<JWTPrincipal>()
             val userId = principal?.getClaim("userId", String::class)
             call.respond(HttpStatusCode.OK, "Ваш userId: $userId")
+        }
+    }
+}
+
+fun Route.getUserData(userDataSource: UserDataSource) {
+    authenticate {
+        get("user") {
+            val principal = call.principal<JWTPrincipal>()
+            val userId = principal?.getClaim("userId", String::class)
+
+            if (userId == null) {
+                call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+                return@get
+            }
+
+            val user = userDataSource.getUserById(ObjectId(userId))
+            if (user == null) {
+                call.respond(HttpStatusCode.NotFound, "Пользователь не найден")
+                return@get
+            }
+
+            val userInfoResponse = UserInfoResponse(
+                id = user.id.toString(),
+                name = user.name,
+                surname = user.surname,
+                email = user.email,
+                position = user.position
+            )
+
+            call.respond(HttpStatusCode.OK, userInfoResponse)
         }
     }
 }
