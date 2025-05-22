@@ -3,6 +3,7 @@ package com.platonso
 import com.platonso.data.request.Request
 import com.platonso.data.request.RequestDataSource
 import com.platonso.data.request.RequestStatus
+import com.platonso.data.requests.CreateZayavkaRequest
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -22,19 +23,17 @@ fun Route.createRequest(
                 return@post
             }
 
-            val content = call.receiveNullable<String>() ?: run {
-                call.respond(HttpStatusCode.BadRequest, "Содержание заявки не указано")
-                return@post
-            }
-
-            if (content.isBlank()) {
-                call.respond(HttpStatusCode.BadRequest, "Содержание заявки не может быть пустым")
+            // Получаем JSON данные
+            val createdRequest = call.receiveNullable<CreateZayavkaRequest>() ?: run {
+                call.respond(HttpStatusCode.BadRequest, "Неверный формат запроса")
                 return@post
             }
 
             val request = Request(
                 userId = ObjectId(userId),
-                content = content
+                date = createdRequest.date,
+                content = createdRequest.content
+
             )
 
             val wasAcknowledged = requestDataSource.createRequest(request)

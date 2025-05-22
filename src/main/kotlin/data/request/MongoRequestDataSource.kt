@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
 class MongoRequestDataSource(
-    private val db: CoroutineDatabase
+    db: CoroutineDatabase
 ) : RequestDataSource {
     private val requests = db.getCollection<Request>("requests")
 

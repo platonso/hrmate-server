@@ -1,16 +1,22 @@
 package com.platonso.data.request
 
+import com.platonso.data.user.ObjectIdSerializer
+import kotlinx.serialization.Serializable
+import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
-import java.time.LocalDateTime
 
+@Serializable
 data class Request(
-    val _id: ObjectId = ObjectId(),
+    @Serializable(with = ObjectIdSerializer::class)
+    @BsonId val id: ObjectId = ObjectId(),
+    @Serializable(with = ObjectIdSerializer::class)
     val userId: ObjectId,
-    val date: LocalDateTime = LocalDateTime.now(),
+    val date: String,
     val content: String,
     val status: RequestStatus = RequestStatus.PENDING
 )
 
+@Serializable
 enum class RequestStatus {
     PENDING,
     APPROVED,
