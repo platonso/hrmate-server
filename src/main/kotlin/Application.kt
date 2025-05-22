@@ -1,5 +1,6 @@
 package com.platonso
 
+import com.platonso.data.request.MongoRequestDataSource
 import com.platonso.data.user.User
 import com.platonso.data.user.MongoUserDataSource
 import com.platonso.plugins.configureMonitoring
@@ -21,12 +22,13 @@ fun main(args: Array<String>) {
 @Suppress("unused")
 fun Application.module() {
     val mongoPw = System.getenv("MONGO_PW")
-    val dbName = "ktor-auth"
+    val dbName = "hrmate-db"
     val db = KMongo.createClient(
         connectionString = "mongodb+srv://platonso:$mongoPw@cluster0.wncrhyq.mongodb.net/$dbName?retryWrites=true&w=majority&appName=Cluster0"
     ).coroutine
         .getDatabase(dbName)
     val userDataSource = MongoUserDataSource(db)
+    val requestDataSource = MongoRequestDataSource(db)
     val tokenService = JwtTokenService()
     val tokenConfig = TokenConfig(
         issuer = environment.config.property("jwt.issuer").getString(),
@@ -38,5 +40,5 @@ fun Application.module() {
     configureSerialization()
     configureMonitoring()
     configureSecurity(tokenConfig)
-    configureRouting(userDataSource, tokenService, tokenConfig)
+    configureRouting(userDataSource, requestDataSource, tokenService, tokenConfig)
 }
