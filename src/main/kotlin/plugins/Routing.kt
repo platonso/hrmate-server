@@ -12,6 +12,7 @@ import com.platonso.signUp
 import com.platonso.createZayavka
 import com.platonso.getUserZayavka
 import com.platonso.getZayavkaById
+import com.platonso.updateZayavkaStatus
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 
@@ -31,5 +32,6 @@ fun Application.configureRouting(
         createZayavka(zayavkaDataSource)
         getUserZayavka(zayavkaDataSource)
         getZayavkaById(zayavkaDataSource)
+        updateZayavkaStatus(zayavkaDataSource)
     }
 }

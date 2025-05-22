@@ -3,6 +3,7 @@ package com.platonso
 import com.platonso.data.zayavka.Zayavka
 import com.platonso.data.zayavka.ZayavkaDataSource
 import com.platonso.data.requests.CreateZayavkaRequest
+import com.platonso.data.requests.UpdateZayavkaStatusRequest
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -15,7 +16,7 @@ fun Route.createZayavka(
     zayavkaDataSource: ZayavkaDataSource
 ) {
     authenticate {
-        post("zayavka") {
+        post("zayavka/create") {
             val principal = call.principal<JWTPrincipal>()
             val userId = principal?.getClaim("userId", String::class) ?: run {
                 call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
@@ -52,7 +53,7 @@ fun Route.createZayavka(
 
 fun Route.getUserZayavka(zayavkaDataSource: ZayavkaDataSource) {
     authenticate {
-        get("zayavka") {
+        get("zayavki") {
             val principal = call.principal<JWTPrincipal>()
             val userId = principal?.getClaim("userId", String::class) ?: run {
                 call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
@@ -93,4 +94,48 @@ fun Route.getZayavkaById(zayavkaDataSource: ZayavkaDataSource) {
             call.respond(HttpStatusCode.OK, zayavka)
         }
     }
-} 
+}
+
+
+fun Route.updateZayavkaStatus(zayavkaDataSource: ZayavkaDataSource) {
+    authenticate {
+        patch("zayavka/{id}/status") {
+            val principal = call.principal<JWTPrincipal>()
+            val userId = principal?.getClaim("userId", String::class) ?: run {
+                call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
+                return@patch
+            }
+
+            val zayavkaId = call.parameters["id"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, "ID заявки не указан")
+                return@patch
+            }
+
+            val request = call.receiveNullable<UpdateZayavkaStatusRequest>() ?: run {
+                call.respond(HttpStatusCode.BadRequest, "Неверный формат запроса")
+                return@patch
+            }
+
+            // Проверяем существование заявки
+            val zayavka = zayavkaDataSource.getZayavkaById(ObjectId(zayavkaId))
+            if (zayavka == null) {
+                call.respond(HttpStatusCode.NotFound, "Заявка не найдена")
+                return@patch
+            }
+
+            // Проверяем права доступа
+            if (zayavka.userId != ObjectId(userId)) {
+                call.respond(HttpStatusCode.Forbidden, "Нет доступа к этой заявке")
+                return@patch
+            }
+
+            val wasUpdated = zayavkaDataSource.updateZayavkaStatus(ObjectId(zayavkaId), request.status)
+            if (!wasUpdated) {
+                call.respond(HttpStatusCode.InternalServerError, "Не удалось обновить статус заявки")
+                return@patch
+            }
+
+            call.respond(HttpStatusCode.OK)
+        }
+    }
+}
