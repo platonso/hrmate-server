@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import java.time.LocalDateTime
 
 data class Request(
-    val id: ObjectId = ObjectId(),
+    val _id: ObjectId = ObjectId(),
     val userId: ObjectId,
     val date: LocalDateTime = LocalDateTime.now(),
     val content: String,
@@ -15,4 +15,4 @@ enum class RequestStatus {
     PENDING,
     APPROVED,
     REJECTED
-} 
+}
