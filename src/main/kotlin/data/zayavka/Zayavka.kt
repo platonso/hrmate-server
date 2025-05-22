@@ -1,4 +1,4 @@
-package com.platonso.data.request
+package com.platonso.data.zayavka
 
 import com.platonso.data.user.ObjectIdSerializer
 import kotlinx.serialization.Serializable
@@ -6,7 +6,7 @@ import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
 
 @Serializable
-data class Request(
+data class Zayavka(
     @Serializable(with = ObjectIdSerializer::class)
     @BsonId val id: ObjectId = ObjectId(),
     @Serializable(with = ObjectIdSerializer::class)
@@ -18,11 +18,11 @@ data class Request(
     val endDate: String,
     val newName: String,
     val newSurname: String,
-    val status: RequestStatus = RequestStatus.PENDING
+    val status: ZayavkaStatus = ZayavkaStatus.PENDING
 )
 
 @Serializable
-enum class RequestStatus {
+enum class ZayavkaStatus {
     PENDING,
     APPROVED,
     REJECTED

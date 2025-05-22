@@ -1,7 +1,6 @@
 package com.platonso
 
-import com.platonso.data.request.MongoRequestDataSource
-import com.platonso.data.user.User
+import com.platonso.data.zayavka.MongoZayavkaDataSource
 import com.platonso.data.user.MongoUserDataSource
 import com.platonso.plugins.configureMonitoring
 import com.platonso.plugins.configureRouting
@@ -10,8 +9,6 @@ import com.platonso.plugins.configureSerialization
 import com.platonso.security.token.JwtTokenService
 import com.platonso.security.token.TokenConfig
 import io.ktor.server.application.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
 
@@ -28,7 +25,7 @@ fun Application.module() {
     ).coroutine
         .getDatabase(dbName)
     val userDataSource = MongoUserDataSource(db)
-    val requestDataSource = MongoRequestDataSource(db)
+    val zayavkaDataSource = MongoZayavkaDataSource(db)
     val tokenService = JwtTokenService()
     val tokenConfig = TokenConfig(
         issuer = environment.config.property("jwt.issuer").getString(),
@@ -40,5 +37,5 @@ fun Application.module() {
     configureSerialization()
     configureMonitoring()
     configureSecurity(tokenConfig)
-    configureRouting(userDataSource, requestDataSource, tokenService, tokenConfig)
+    configureRouting(userDataSource, zayavkaDataSource, tokenService, tokenConfig)
 }
