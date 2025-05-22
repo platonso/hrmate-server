@@ -11,8 +11,13 @@ data class Request(
     @BsonId val id: ObjectId = ObjectId(),
     @Serializable(with = ObjectIdSerializer::class)
     val userId: ObjectId,
+    val title: String,
     val date: String,
-    val content: String,
+    val description: String,
+    val startDate: String,
+    val endDate: String,
+    val newName: String,
+    val newSurname: String,
     val status: RequestStatus = RequestStatus.PENDING
 )
 

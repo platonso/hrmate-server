@@ -2,8 +2,8 @@ package com.platonso
 
 import com.platonso.data.request.Request
 import com.platonso.data.request.RequestDataSource
-import com.platonso.data.request.RequestStatus
 import com.platonso.data.requests.CreateZayavkaRequest
+import io.ktor.client.request.request
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -31,9 +31,13 @@ fun Route.createRequest(
 
             val request = Request(
                 userId = ObjectId(userId),
+                title = createdRequest.title,
                 date = createdRequest.date,
-                content = createdRequest.content
-
+                description = createdRequest.description,
+                startDate = createdRequest.startDate,
+                endDate = createdRequest.endDate,
+                newName = createdRequest.newName,
+                newSurname = createdRequest.newSurname
             )
 
             val wasAcknowledged = requestDataSource.createRequest(request)
