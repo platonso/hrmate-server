@@ -8,4 +8,5 @@ interface ZayavkaDataSource {
     suspend fun getZayavkaByUserId(userId: ObjectId): List<Zayavka>
     suspend fun updateZayavkaStatus(id: ObjectId, status: ZayavkaStatus): Boolean
     suspend fun deleteZayavka(id: ObjectId): Boolean
+    suspend fun getAllZayavki(): List<Zayavka>
 }

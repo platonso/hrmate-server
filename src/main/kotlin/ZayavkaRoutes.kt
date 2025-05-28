@@ -51,7 +51,7 @@ fun Route.createZayavka(
     }
 }
 
-fun Route.getUserZayavka(zayavkaDataSource: ZayavkaDataSource) {
+fun Route.getUserZayavki(zayavkaDataSource: ZayavkaDataSource) {
     authenticate {
         get("zayavki") {
             val principal = call.principal<JWTPrincipal>()
@@ -96,46 +96,61 @@ fun Route.getZayavkaById(zayavkaDataSource: ZayavkaDataSource) {
     }
 }
 
+fun Route.getManagerUsersZayavki(zayavkaDataSource: ZayavkaDataSource) {
+    get("manager/zayavki") {
+        val zayavki = zayavkaDataSource.getAllZayavki()
+        call.respond(HttpStatusCode.OK, zayavki)
+    }
+}
 
-fun Route.updateZayavkaStatus(zayavkaDataSource: ZayavkaDataSource) {
-    authenticate {
-        patch("zayavka/{id}/status") {
-            val principal = call.principal<JWTPrincipal>()
-            val userId = principal?.getClaim("userId", String::class) ?: run {
-                call.respond(HttpStatusCode.Unauthorized, "Пользователь не авторизован")
-                return@patch
-            }
-
-            val zayavkaId = call.parameters["id"] ?: run {
-                call.respond(HttpStatusCode.BadRequest, "ID заявки не указан")
-                return@patch
-            }
-
-            val request = call.receiveNullable<UpdateZayavkaStatusRequest>() ?: run {
-                call.respond(HttpStatusCode.BadRequest, "Неверный формат запроса")
-                return@patch
-            }
-
-            // Проверяем существование заявки
-            val zayavka = zayavkaDataSource.getZayavkaById(ObjectId(zayavkaId))
-            if (zayavka == null) {
-                call.respond(HttpStatusCode.NotFound, "Заявка не найдена")
-                return@patch
-            }
-
-            // Проверяем права доступа
-            if (zayavka.userId != ObjectId(userId)) {
-                call.respond(HttpStatusCode.Forbidden, "Нет доступа к этой заявке")
-                return@patch
-            }
-
-            val wasUpdated = zayavkaDataSource.updateZayavkaStatus(ObjectId(zayavkaId), request.status)
-            if (!wasUpdated) {
-                call.respond(HttpStatusCode.InternalServerError, "Не удалось обновить статус заявки")
-                return@patch
-            }
-
-            call.respond(HttpStatusCode.OK)
+fun Route.updateManagerZayavkaStatus(zayavkaDataSource: ZayavkaDataSource) {
+    patch("manager/zayavka/{id}/status") {
+        val zayavkaId = call.parameters["id"] ?: run {
+            call.respond(HttpStatusCode.BadRequest, "ID заявки не указан")
+            return@patch
         }
+
+        val request = call.receiveNullable<UpdateZayavkaStatusRequest>() ?: run {
+            call.respond(HttpStatusCode.BadRequest, "Неверный формат запроса")
+            return@patch
+        }
+
+        val zayavka = zayavkaDataSource.getZayavkaById(ObjectId(zayavkaId))
+        if (zayavka == null) {
+            call.respond(HttpStatusCode.NotFound, "Заявка не найдена")
+            return@patch
+        }
+
+        val wasUpdated = zayavkaDataSource.updateZayavkaStatus(ObjectId(zayavkaId), request.status)
+        if (!wasUpdated) {
+            call.respond(HttpStatusCode.InternalServerError, "Не удалось обновить статус заявки")
+            return@patch
+        }
+
+        call.respond(HttpStatusCode.OK)
+    }
+}
+
+fun Route.deleteManagerZayavka(zayavkaDataSource: ZayavkaDataSource) {
+    delete("manager/zayavka/delete/{id}") {
+        val zayavkaId = call.parameters["id"] ?: run {
+            call.respond(HttpStatusCode.BadRequest, "ID заявки не указан")
+            return@delete
+        }
+
+        // Проверяем существование заявки
+        val zayavka = zayavkaDataSource.getZayavkaById(ObjectId(zayavkaId))
+        if (zayavka == null) {
+            call.respond(HttpStatusCode.NotFound, "Заявка не найдена")
+            return@delete
+        }
+
+        val wasDeleted = zayavkaDataSource.deleteZayavka(ObjectId(zayavkaId))
+        if (!wasDeleted) {
+            call.respond(HttpStatusCode.InternalServerError, "Не удалось удалить заявку")
+            return@delete
+        }
+
+        call.respond(HttpStatusCode.OK)
     }
 }

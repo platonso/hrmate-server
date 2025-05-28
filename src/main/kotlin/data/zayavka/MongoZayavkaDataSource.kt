@@ -32,4 +32,8 @@ class MongoZayavkaDataSource(
     override suspend fun deleteZayavka(id: ObjectId): Boolean {
         return requests.deleteOne(Filters.eq("_id", id)).wasAcknowledged()
     }
+
+    override suspend fun getAllZayavki(): List<Zayavka> {
+        return requests.find().toList()
+    }
 }

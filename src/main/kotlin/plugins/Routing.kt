@@ -10,9 +10,11 @@ import com.platonso.security.token.TokenService
 import com.platonso.signIn
 import com.platonso.signUp
 import com.platonso.createZayavka
-import com.platonso.getUserZayavka
+import com.platonso.deleteManagerZayavka
+import com.platonso.getManagerUsersZayavki
+import com.platonso.getUserZayavki
 import com.platonso.getZayavkaById
-import com.platonso.updateZayavkaStatus
+import com.platonso.updateManagerZayavkaStatus
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 
@@ -30,8 +32,11 @@ fun Application.configureRouting(
         getUserData(userDataSource)
 
         createZayavka(zayavkaDataSource)
-        getUserZayavka(zayavkaDataSource)
+        getUserZayavki(zayavkaDataSource)
         getZayavkaById(zayavkaDataSource)
-        updateZayavkaStatus(zayavkaDataSource)
+
+        getManagerUsersZayavki(zayavkaDataSource)
+        updateManagerZayavkaStatus(zayavkaDataSource)
+        deleteManagerZayavka(zayavkaDataSource)
     }
 }
